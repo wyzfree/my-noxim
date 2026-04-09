@@ -1,3 +1,16 @@
+自用：本地先在终端输入wsl，然后 `conda activate paper`启动虚拟环境
+
+
+
+
+
+
+
+
+
+
+
+
 Noxim - the NoC Simulator
 =========================
 
