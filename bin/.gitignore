@@ -1,0 +1,6 @@
+bin/noxim
+bin/*.log
+bin/*.o
+**/.DS_Store
+my_paper_results/
+*.out

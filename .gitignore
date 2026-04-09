@@ -1,0 +1,10 @@
+# 排除所有编译产物
+bin/noxim
+build/
+**/*.o
+**/*.d
+Makefile.deps
+
+# 排除日志
+*.log
+bin/*.log

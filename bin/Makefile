@@ -1,7 +1,7 @@
 ##### LIBRARIES CONFIGURATION #####
 
-SYSTEMC := libs/systemc-2.3.1
-YAML    := libs/yaml-cpp
+SYSTEMC := $(CONDA_PREFIX)
+YAML    := $(CONDA_PREFIX)
 
 
 ##### DIRECTORIES #####
@@ -25,11 +25,14 @@ OPT      := -O3
 # to enable logs with LOG macro, uncomment "-g DDEBUG" in the line below
 # and recompile everythin (make clean)
 #DEBUG    :=  -g -DDEBUG
-OTHER    := -Wall -DSC_NO_WRITE_CHECK --std=c++11 # -Wno-deprecated
+DEBUG    := -g
+
+OTHER    := -Wall -DSC_NO_WRITE_CHECK --std=c++17 # -Wno-deprecated
 CXXFLAGS := $(OPT) $(OTHER) $(DEBUG)
 
 INCDIR := -I$(SRCDIR) -isystem $(SYSTEMC)/include -I$(YAML)/include
-LIBDIR := -L$(SRCDIR) -L$(SYSTEMC_LIBS) -L$(YAML)/lib
+# LIBDIR := -L$(SRCDIR) -L$(SYSTEMC_LIBS) -L$(YAML)/lib
+LIBDIR := -L$(SRCDIR) -L$(SYSTEMC)/lib -L$(YAML)/lib
 
 LIBS := -lsystemc -lm -lyaml-cpp 
 
