@@ -604,8 +604,12 @@ void parseCmdLine(int arg_num, char *arg_vet[])
 		    atoi(arg_vet[++i]);
 	    else if (!strcmp(arg_vet[i], "-sim"))
 		GlobalParams::simulation_time = atoi(arg_vet[++i]);
-	    else if (!strcmp(arg_vet[i], "-asciimonitor")) 
+	    else if (!strcmp(arg_vet[i], "-asciimonitor"))
 		GlobalParams::ascii_monitor = true;
+	    else if (!strcmp(arg_vet[i], "-chips"))
+		GlobalParams::num_chips = atoi(arg_vet[++i]);
+	    else if (!strcmp(arg_vet[i], "-cross_traffic"))
+		GlobalParams::cross_traffic_filename = arg_vet[++i];
 	    else if (!strcmp(arg_vet[i], "-config") || !strcmp(arg_vet[i], "-power"))
 		// -config is managed from configure function
 		// i++ skips the configuration file name 

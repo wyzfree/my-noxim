@@ -61,3 +61,5 @@ PowerConfig GlobalParams::power_configuration;
 // out of yaml configuration
 bool GlobalParams::ascii_monitor;
 int GlobalParams::channel_selection;
+int GlobalParams::num_chips = 1;
+string GlobalParams::cross_traffic_filename = "";

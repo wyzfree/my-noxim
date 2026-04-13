@@ -88,6 +88,8 @@ Flit ProcessingElement::nextFlit()
 
     flit.src_id = packet.src_id;
     flit.dst_id = packet.dst_id;
+    flit.chip_id = 0;      // intra-chip flit: source chip always 0 for single-chip PE
+    flit.dst_chip_id = -1; // intra-chip flit: no cross-chip routing
     flit.vc_id = packet.vc_id;
     flit.timestamp = packet.timestamp;
     flit.sequence_no = packet.size - packet.flit_left;

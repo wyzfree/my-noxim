@@ -1,0 +1,13 @@
+===== Multi-chip benchmark (dimx=8 dimy=8 sim=10000) =====
+Date: 2026-04-10
+
+chips  real_time
+-----  ---------
+1      0m1.563s   (1.0x)
+2      0m4.163s   (2.7x)
+4      0m10.471s  (6.7x)
+8      0m22.284s  (14.3x)
+16     1m18.960s  (50.6x)
+32     3m10.429s  (122.0x)
+
+Note: WSL2, Intel CPU, 8x8 NoC per chip, random traffic, 10000 sim cycles

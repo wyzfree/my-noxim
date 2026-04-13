@@ -119,6 +119,8 @@ struct TBufferFullStatus {
 struct Flit {
     int src_id;
     int dst_id;
+    int chip_id;        // Source chip index (0-based); used for cross-chip routing
+    int dst_chip_id;    // Destination chip index; -1 means intra-chip
     int vc_id; // Virtual Channel
     FlitType flit_type;	// The flit type (FLIT_TYPE_HEAD, FLIT_TYPE_BODY, FLIT_TYPE_TAIL)
     int sequence_no;		// The sequence number of the flit inside the packet
@@ -132,6 +134,8 @@ struct Flit {
 
     inline bool operator ==(const Flit & flit) const {
 	return (flit.src_id == src_id && flit.dst_id == dst_id
+		&& flit.chip_id == chip_id
+		&& flit.dst_chip_id == dst_chip_id
 		&& flit.flit_type == flit_type
 		&& flit.vc_id == vc_id
 		&& flit.sequence_no == sequence_no

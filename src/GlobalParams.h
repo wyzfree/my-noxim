@@ -187,6 +187,8 @@ struct GlobalParams {
     // out of yaml configuration
     static bool ascii_monitor;
     static int channel_selection;
+    static int num_chips;
+    static string cross_traffic_filename;
 };
 
 #endif

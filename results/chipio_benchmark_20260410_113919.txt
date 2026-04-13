@@ -1,0 +1,10 @@
+===== ChipIO benchmark (total 256 PEs, sim=10000) =====
+Date: Fri Apr 10 11:39:19 CST 2026
+
+chips  dimx  dimy  total_PE  real_time
+-----  ----  ----  --------  ---------
+1      16    16    256       real	0m18.366s
+4      8     8     256       real	0m10.452s
+16     4     4     256       real	0m6.669s
+64     2     2     256       real	0m0.253s
+
