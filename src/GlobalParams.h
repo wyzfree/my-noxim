@@ -189,6 +189,27 @@ struct GlobalParams {
     static int channel_selection;
     static int num_chips;
     static string cross_traffic_filename;
+    // Multi-process mode: identity and IPC file paths for this process
+    static int chip_id;
+    static string in_fifo_path;
+    static string out_fifo_path;
+
+    // SNN (Leaky Integrate-and-Fire) PE computation mode.
+    // When snn_mode == false (default), PE behaves exactly as before.
+    // When snn_mode == true, each PE simulates one LIF neuron:
+    //   V[t] = V[t-1] * snn_leak + (incoming spikes * snn_weight_in)
+    //   if V[t] >= snn_threshold: fire → V reset → send spike to snn_fanout targets
+    // Enabled via CLI: -snn_mode
+    static bool   snn_mode;
+    static int    snn_timestep_cycles; // NoC cycles per SNN timestep
+    static float  snn_threshold;       // firing threshold
+    static float  snn_leak;            // leak factor per timestep  (0 < leak < 1)
+    static float  snn_weight_in;       // membrane contribution per incoming spike
+    static float  snn_bias;            // constant input current per timestep (drives spontaneous activity)
+    static int    snn_fanout;          // number of post-synaptic targets per neuron
+    // Optional cross-chip forwarding target for SNN-generated packets.
+    // -1 keeps legacy intra-chip behaviour.
+    static int    snn_target_chip;
 };
 
 #endif

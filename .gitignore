@@ -8,3 +8,4 @@ Makefile.deps
 # 排除日志
 *.log
 bin/*.log
+snn/data/*.npy

@@ -610,6 +610,30 @@ void parseCmdLine(int arg_num, char *arg_vet[])
 		GlobalParams::num_chips = atoi(arg_vet[++i]);
 	    else if (!strcmp(arg_vet[i], "-cross_traffic"))
 		GlobalParams::cross_traffic_filename = arg_vet[++i];
+	    // Multi-process mode params (FileIO)
+	    else if (!strcmp(arg_vet[i], "-chip_id"))
+		GlobalParams::chip_id = atoi(arg_vet[++i]);
+	    else if (!strcmp(arg_vet[i], "-in_fifo"))
+		GlobalParams::in_fifo_path = arg_vet[++i];
+	    else if (!strcmp(arg_vet[i], "-out_fifo"))
+		GlobalParams::out_fifo_path = arg_vet[++i];
+	    // SNN PE computation mode params
+	    else if (!strcmp(arg_vet[i], "-snn_mode"))
+		GlobalParams::snn_mode = true;
+	    else if (!strcmp(arg_vet[i], "-snn_ts_cycles"))
+		GlobalParams::snn_timestep_cycles = atoi(arg_vet[++i]);
+	    else if (!strcmp(arg_vet[i], "-snn_threshold"))
+		GlobalParams::snn_threshold = atof(arg_vet[++i]);
+	    else if (!strcmp(arg_vet[i], "-snn_leak"))
+		GlobalParams::snn_leak = atof(arg_vet[++i]);
+	    else if (!strcmp(arg_vet[i], "-snn_weight"))
+		GlobalParams::snn_weight_in = atof(arg_vet[++i]);
+	    else if (!strcmp(arg_vet[i], "-snn_bias"))
+		GlobalParams::snn_bias = atof(arg_vet[++i]);
+	    else if (!strcmp(arg_vet[i], "-snn_fanout"))
+		GlobalParams::snn_fanout = atoi(arg_vet[++i]);
+	    else if (!strcmp(arg_vet[i], "-snn_target_chip"))
+		GlobalParams::snn_target_chip = atoi(arg_vet[++i]);
 	    else if (!strcmp(arg_vet[i], "-config") || !strcmp(arg_vet[i], "-power"))
 		// -config is managed from configure function
 		// i++ skips the configuration file name 

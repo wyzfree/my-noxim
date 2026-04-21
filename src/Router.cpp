@@ -126,12 +126,13 @@ void Router::txProcess()
 		    {
 		      // prepare data for routing
 		      RouteData route_data;
-		      route_data.current_id = local_id;
-		      //LOG<< "current_id= "<< route_data.current_id <<" for sending " << flit << endl;
-		      route_data.src_id = flit.src_id;
-		      route_data.dst_id = flit.dst_id;
-		      route_data.dir_in = i;
-		      route_data.vc_id = flit.vc_id;
+			      route_data.current_id = local_id;
+			      //LOG<< "current_id= "<< route_data.current_id <<" for sending " << flit << endl;
+			      route_data.src_id = flit.src_id;
+			      route_data.dst_id = flit.dst_id;
+			      route_data.dst_chip_id = flit.dst_chip_id;
+			      route_data.dir_in = i;
+			      route_data.vc_id = flit.vc_id;
 
 		      // TODO: see PER POSTERI (adaptive routing should not recompute route if already reserved)
 		      int o = route(route_data);
@@ -455,6 +456,46 @@ vector < int > Router::routingFunction(const RouteData & route_data)
 
 int Router::route(const RouteData & route_data)
 {
+    // Cross-chip packets: route to nearest border and eject from this chip.
+    // Legacy intra-chip path is untouched when dst_chip_id is -1 or local.
+    if (route_data.dst_chip_id >= 0 &&
+        route_data.dst_chip_id != local_chip_id) {
+        Coord current = id2Coord(local_id);
+        Coord remote_dst = id2Coord(route_data.dst_id);
+        int dimx = GlobalParams::mesh_dim_x;
+        int dimy = GlobalParams::mesh_dim_y;
+
+        int d_north = remote_dst.y;
+        int d_south = (dimy - 1) - remote_dst.y;
+        int d_west  = remote_dst.x;
+        int d_east  = (dimx - 1) - remote_dst.x;
+        int best = min({d_north, d_south, d_west, d_east});
+
+        int target_x = remote_dst.x;
+        int target_y = remote_dst.y;
+        int exit_dir = DIRECTION_NORTH;
+        if (best == d_north) {
+            target_y = 0;
+            exit_dir = DIRECTION_NORTH;
+        } else if (best == d_east) {
+            target_x = dimx - 1;
+            exit_dir = DIRECTION_EAST;
+        } else if (best == d_south) {
+            target_y = dimy - 1;
+            exit_dir = DIRECTION_SOUTH;
+        } else {
+            target_x = 0;
+            exit_dir = DIRECTION_WEST;
+        }
+
+        if (current.x == target_x && current.y == target_y)
+            return exit_dir;
+
+        if (current.x < target_x) return DIRECTION_EAST;
+        if (current.x > target_x) return DIRECTION_WEST;
+        if (current.y < target_y) return DIRECTION_SOUTH;
+        return DIRECTION_NORTH;
+    }
 
     if (route_data.dst_id == local_id)
 	return DIRECTION_LOCAL;
@@ -515,9 +556,11 @@ int Router::selectionFunction(const vector < int >&directions,
 void Router::configure(const int _id,
 			    const double _warm_up_time,
 			    const unsigned int _max_buffer_size,
-			    GlobalRoutingTable & grt)
+			    GlobalRoutingTable & grt,
+			    const int _chip_id)
 {
     local_id = _id;
+    local_chip_id = _chip_id;
     stats.configure(_id, _warm_up_time);
 
     start_from_port = DIRECTION_LOCAL;

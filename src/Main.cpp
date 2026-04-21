@@ -14,6 +14,7 @@
 #include "DataStructs.h"
 #include "GlobalParams.h"
 #include "ChipIO.h"
+#include "FileIO.h"
 
 #include <csignal>
 #include <vector>
@@ -61,51 +62,89 @@ int sc_main(int arg_num, char *arg_vet[])
     sc_clock clock("clock", GlobalParams::clock_period_ps, SC_PS);
     sc_signal <bool> reset;
 
-    // Instantiate all chips
-    vector<NoC*> chip_vec(GlobalParams::num_chips);
-    chips = new NoC*[GlobalParams::num_chips];
-    for (int c = 0; c < GlobalParams::num_chips; c++) {
-        char name[32];
-        sprintf(name, "Chip_%d", c);
-        chips[c] = new NoC(name);
-        chips[c]->clock(clock);
-        chips[c]->reset(reset);
-        chip_vec[c] = chips[c];
-    }
+    bool fileio_mode = !GlobalParams::in_fifo_path.empty();
 
-    // Instantiate ChipIO for cross-chip flit routing
-    ChipIO* chip_io = new ChipIO("ChipIO", chip_vec);
-    chip_io->clock(clock);
-    chip_io->reset(reset);
+    if (fileio_mode) {
+        // ---- Multi-process mode: one chip per process, FileIO for cross-chip ----
+        cout << "Multi-process mode: chip_id=" << GlobalParams::chip_id
+             << "  in_fifo="  << GlobalParams::in_fifo_path
+             << "  out_fifo=" << GlobalParams::out_fifo_path << endl;
 
-    // Reset all chips and run the simulation
-    reset.write(1);
-    cout << "Reset for " << (int)(GlobalParams::reset_time) << " cycles... ";
-    srand(GlobalParams::rnd_generator_seed);
+        chips = new NoC*[1];
+        chips[0] = new NoC("Chip_0", GlobalParams::chip_id);
+        chips[0]->clock(clock);
+        chips[0]->reset(reset);
 
-    sc_start(GlobalParams::reset_time * GlobalParams::clock_period_ps, SC_PS);
+        FileIO* file_io = new FileIO("FileIO", chips[0],
+                                     GlobalParams::in_fifo_path,
+                                     GlobalParams::out_fifo_path,
+                                     GlobalParams::cross_traffic_filename);
+        file_io->clock(clock);
+        file_io->reset(reset);
 
-    reset.write(0);
-    cout << " done! " << endl;
-    cout << " Now running for " << GlobalParams::simulation_time << " cycles..." << endl;
+        reset.write(1);
+        cout << "Reset for " << (int)(GlobalParams::reset_time) << " cycles... ";
+        srand(GlobalParams::rnd_generator_seed);
+        sc_start(GlobalParams::reset_time * GlobalParams::clock_period_ps, SC_PS);
 
-    sc_start(GlobalParams::simulation_time * GlobalParams::clock_period_ps, SC_PS);
+        reset.write(0);
+        cout << " done!" << endl;
+        cout << " Now running for " << GlobalParams::simulation_time << " cycles..." << endl;
+        sc_start(GlobalParams::simulation_time * GlobalParams::clock_period_ps, SC_PS);
 
-    // Close the simulation
-    cout << "Noxim simulation completed.";
-    cout << " (" << sc_time_stamp().to_double() / GlobalParams::clock_period_ps << " cycles executed)" << endl;
-    cout << endl;
+        cout << "Noxim simulation completed.";
+        cout << " (" << sc_time_stamp().to_double() / GlobalParams::clock_period_ps
+             << " cycles executed)" << endl << endl;
 
-    // Show statistics for each chip
-    for (int c = 0; c < GlobalParams::num_chips; c++) {
-        cout << "========== Chip " << c << " ==========" << endl;
-        GlobalStats gs(chips[c]);
+        cout << "========== Chip " << GlobalParams::chip_id << " ==========" << endl;
+        GlobalStats gs(chips[0]);
         gs.showStats(std::cout, GlobalParams::detailed);
-    }
 
-    // Show ChipIO cross-chip statistics
-    if (GlobalParams::num_chips > 1)
-        chip_io->printStats();
+        file_io->printStats();
+
+    } else {
+        // ---- Single-process mode: all chips in one process, ChipIO ----
+
+        // Instantiate all chips
+        vector<NoC*> chip_vec(GlobalParams::num_chips);
+        chips = new NoC*[GlobalParams::num_chips];
+        for (int c = 0; c < GlobalParams::num_chips; c++) {
+            char name[32];
+            sprintf(name, "Chip_%d", c);
+            chips[c] = new NoC(name, c);
+            chips[c]->clock(clock);
+            chips[c]->reset(reset);
+            chip_vec[c] = chips[c];
+        }
+
+        // Instantiate ChipIO for cross-chip flit routing
+        ChipIO* chip_io = new ChipIO("ChipIO", chip_vec);
+        chip_io->clock(clock);
+        chip_io->reset(reset);
+
+        reset.write(1);
+        cout << "Reset for " << (int)(GlobalParams::reset_time) << " cycles... ";
+        srand(GlobalParams::rnd_generator_seed);
+        sc_start(GlobalParams::reset_time * GlobalParams::clock_period_ps, SC_PS);
+
+        reset.write(0);
+        cout << " done! " << endl;
+        cout << " Now running for " << GlobalParams::simulation_time << " cycles..." << endl;
+        sc_start(GlobalParams::simulation_time * GlobalParams::clock_period_ps, SC_PS);
+
+        cout << "Noxim simulation completed.";
+        cout << " (" << sc_time_stamp().to_double() / GlobalParams::clock_period_ps
+             << " cycles executed)" << endl << endl;
+
+        for (int c = 0; c < GlobalParams::num_chips; c++) {
+            cout << "========== Chip " << c << " ==========" << endl;
+            GlobalStats gs(chips[c]);
+            gs.showStats(std::cout, GlobalParams::detailed);
+        }
+
+        if (GlobalParams::num_chips > 1)
+            chip_io->printStats();
+    }
 
     if ((GlobalParams::max_volume_to_be_drained > 0) &&
 	(sc_time_stamp().to_double() / GlobalParams::clock_period_ps - GlobalParams::reset_time >=

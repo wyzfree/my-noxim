@@ -46,6 +46,7 @@ struct sc_signal_NSWEH
 SC_MODULE(NoC)
 {
     public: bool SwitchOnly; //true if the tile are switch only 
+    public: int chip_id;     // Owning chip index in multi-chip mode
     // I/O Ports
     sc_in_clk clock;		// The input clock for the NoC
     sc_in < bool > reset;	// The reset signal for the NoC
@@ -92,10 +93,9 @@ SC_MODULE(NoC)
 
     // Constructor
 
-    SC_CTOR(NoC) 
+    SC_HAS_PROCESS(NoC);
+    NoC(sc_module_name nm, int _chip_id = 0) : sc_module(nm), chip_id(_chip_id)
     {
-
-
 	if (GlobalParams::topology == TOPOLOGY_MESH)
 	    // Build the Mesh
 	    buildMesh();

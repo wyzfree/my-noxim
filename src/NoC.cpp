@@ -193,10 +193,11 @@ void NoC::buildButterfly()
 
 			//cout << "switch  " << i <<  " " << j << "   has an Id = " << tile_id <<  endl;
 			// Tell to the router its coordinates
-			t[i][j]->r->configure(tile_id,
-								  GlobalParams::stats_warm_up_time,
-								  GlobalParams::buffer_depth,
-								  grtable);
+				t[i][j]->r->configure(tile_id,
+									  GlobalParams::stats_warm_up_time,
+									  GlobalParams::buffer_depth,
+									  grtable,
+									  chip_id);
 			t[i][j]->r->power.configureRouter(GlobalParams::flit_size,
 											  GlobalParams::buffer_depth,
 											  GlobalParams::flit_size,
@@ -205,9 +206,10 @@ void NoC::buildButterfly()
 
 
 
-			// Tell to the PE its coordinates
-			t[i][j]->pe->local_id = tile_id;
-			t[i][j]->pe->traffic_table = &gttable;	// Needed to choose destination
+				// Tell to the PE its coordinates
+				t[i][j]->pe->local_id = tile_id;
+				t[i][j]->pe->chip_id = chip_id;
+				t[i][j]->pe->traffic_table = &gttable;	// Needed to choose destination
 			t[i][j]->pe->traffic_hardcoded = &ghtable;
 			t[i][j]->pe->never_transmit = true;
 
@@ -522,9 +524,10 @@ void NoC::buildButterfly()
 
 		// Tell to the Core router its coordinates
 		core[i]->r->configure( core_id,
-							   GlobalParams::stats_warm_up_time,
-							   GlobalParams::buffer_depth,
-							   grtable);
+								   GlobalParams::stats_warm_up_time,
+								   GlobalParams::buffer_depth,
+								   grtable,
+								   chip_id);
 		core[i]->r->power.configureRouter(GlobalParams::flit_size,
 										  GlobalParams::buffer_depth,
 										  GlobalParams::flit_size,
@@ -533,9 +536,10 @@ void NoC::buildButterfly()
 
 
 
-		// Tell to the PE its coordinates
-		core[i]->pe->local_id = core_id;
-		// Check for traffic table availability
+			// Tell to the PE its coordinates
+			core[i]->pe->local_id = core_id;
+			core[i]->pe->chip_id = chip_id;
+			// Check for traffic table availability
 		if (GlobalParams::traffic_distribution == TRAFFIC_TABLE_BASED)
 		{
 			core[i]->pe->traffic_table = &gttable;	// Needed to choose destination
@@ -846,10 +850,11 @@ void NoC::buildBaseline()
 	    t[i][j] = new Tile(tile_name, tile_id);
 
 	    // Tell to the router its coordinates
-	    t[i][j]->r->configure(tile_id,
-		    GlobalParams::stats_warm_up_time,
-		    GlobalParams::buffer_depth,
-		    grtable);
+		    t[i][j]->r->configure(tile_id,
+			    GlobalParams::stats_warm_up_time,
+			    GlobalParams::buffer_depth,
+			    grtable,
+			    chip_id);
 	    t[i][j]->r->power.configureRouter(GlobalParams::flit_size,
 		    GlobalParams::buffer_depth,
 		    GlobalParams::flit_size,
@@ -858,9 +863,10 @@ void NoC::buildBaseline()
 
 
 
-	    // Tell to the PE its coordinates
-	    t[i][j]->pe->local_id = tile_id;
-	    t[i][j]->pe->traffic_table = &gttable;	// Needed to choose destination
+		    // Tell to the PE its coordinates
+		    t[i][j]->pe->local_id = tile_id;
+		    t[i][j]->pe->chip_id = chip_id;
+		    t[i][j]->pe->traffic_table = &gttable;	// Needed to choose destination
 	    t[i][j]->pe->traffic_hardcoded = &ghtable;
 	    t[i][j]->pe->never_transmit = true;
 
@@ -1288,10 +1294,11 @@ void NoC::buildBaseline()
 	core[i] = new Tile(core_name, core_id);
 
 	// Tell to the Core router its coordinates
-	core[i]->r->configure( core_id,
-		GlobalParams::stats_warm_up_time,
-		GlobalParams::buffer_depth,
-		grtable);
+		core[i]->r->configure( core_id,
+			GlobalParams::stats_warm_up_time,
+			GlobalParams::buffer_depth,
+			grtable,
+			chip_id);
 	core[i]->r->power.configureRouter(GlobalParams::flit_size,
 		GlobalParams::buffer_depth,
 		GlobalParams::flit_size,
@@ -1300,9 +1307,10 @@ void NoC::buildBaseline()
 
 
 
-	// Tell to the PE its coordinates
-	core[i]->pe->local_id = core_id;
-	// Check for traffic table availability
+		// Tell to the PE its coordinates
+		core[i]->pe->local_id = core_id;
+		core[i]->pe->chip_id = chip_id;
+		// Check for traffic table availability
 	if (GlobalParams::traffic_distribution == TRAFFIC_TABLE_BASED)
 	{
 	    core[i]->pe->traffic_table = &gttable;	// Needed to choose destination
@@ -1582,10 +1590,11 @@ void NoC::buildOmega()
 
 			//cout << "switch  " << i <<  " " << j << "   has an Id = " << tile_id <<  endl;
 			// Tell to the router its coordinates
-			t[i][j]->r->configure(tile_id,
-								  GlobalParams::stats_warm_up_time,
-								  GlobalParams::buffer_depth,
-								  grtable);
+				t[i][j]->r->configure(tile_id,
+									  GlobalParams::stats_warm_up_time,
+									  GlobalParams::buffer_depth,
+									  grtable,
+									  chip_id);
 			t[i][j]->r->power.configureRouter(GlobalParams::flit_size,
 											  GlobalParams::buffer_depth,
 											  GlobalParams::flit_size,
@@ -1594,9 +1603,10 @@ void NoC::buildOmega()
 
 
 
-			// Tell to the PE its coordinates
-			t[i][j]->pe->local_id = tile_id;
-			t[i][j]->pe->traffic_table = &gttable;	// Needed to choose destination
+				// Tell to the PE its coordinates
+				t[i][j]->pe->local_id = tile_id;
+				t[i][j]->pe->chip_id = chip_id;
+				t[i][j]->pe->traffic_table = &gttable;	// Needed to choose destination
 			t[i][j]->pe->traffic_hardcoded = &ghtable;	// Needed to choose destination
 			t[i][j]->pe->never_transmit = true;
 
@@ -1922,10 +1932,11 @@ void NoC::buildOmega()
 		core[i] = new Tile(core_name, core_id);
 
 		// Tell to the Core router its coordinates
-		core[i]->r->configure( core_id,
-							   GlobalParams::stats_warm_up_time,
-							   GlobalParams::buffer_depth,
-							   grtable);
+			core[i]->r->configure( core_id,
+								   GlobalParams::stats_warm_up_time,
+								   GlobalParams::buffer_depth,
+								   grtable,
+								   chip_id);
 		core[i]->r->power.configureRouter(GlobalParams::flit_size,
 										  GlobalParams::buffer_depth,
 										  GlobalParams::flit_size,
@@ -1936,6 +1947,7 @@ void NoC::buildOmega()
 
 		// Tell to the PE its coordinates
 		core[i]->pe->local_id = core_id;
+		core[i]->pe->chip_id = chip_id;
 		// Check for traffic table availability
 		if (GlobalParams::traffic_distribution == TRAFFIC_TABLE_BASED)
 		{
@@ -2202,10 +2214,11 @@ void NoC::buildMesh()
 	    t[i][j] = new Tile(tile_name, tile_id);
 
 	    // Tell to the router its coordinates
-	    t[i][j]->r->configure(j * GlobalParams::mesh_dim_x + i,
-				  GlobalParams::stats_warm_up_time,
-				  GlobalParams::buffer_depth,
-				  grtable);
+		    t[i][j]->r->configure(j * GlobalParams::mesh_dim_x + i,
+					  GlobalParams::stats_warm_up_time,
+					  GlobalParams::buffer_depth,
+					  grtable,
+					  chip_id);
 	    t[i][j]->r->power.configureRouter(GlobalParams::flit_size,
 		      			      GlobalParams::buffer_depth,
 					      GlobalParams::flit_size,
@@ -2214,8 +2227,9 @@ void NoC::buildMesh()
 					      
 
 
-	    // Tell to the PE its coordinates
-	    t[i][j]->pe->local_id = j * GlobalParams::mesh_dim_x + i;
+		    // Tell to the PE its coordinates
+		    t[i][j]->pe->local_id = j * GlobalParams::mesh_dim_x + i;
+		    t[i][j]->pe->chip_id = chip_id;
 
 	    // Check for traffic table availability
    		if (GlobalParams::traffic_distribution == TRAFFIC_TABLE_BASED)
@@ -2423,4 +2437,3 @@ void NoC::asciiMonitor()
 		}
 	}
 }
-

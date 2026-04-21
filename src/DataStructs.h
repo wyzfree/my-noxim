@@ -70,6 +70,7 @@ struct RouteData {
     int current_id;
     int src_id;
     int dst_id;
+    int dst_chip_id;
     int dir_in;			// direction from which the packet comes from
     int vc_id;
 };

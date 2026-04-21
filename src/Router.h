@@ -60,6 +60,7 @@ SC_MODULE(Router)
     // Registers
 
     int local_id;		                // Unique ID
+    int local_chip_id;                  // Owning chip index in multi-chip mode
     int routing_type;		                // Type of routing algorithm
     int selection_type;
     BufferBank buffer[DIRECTIONS + 2];		// buffer[direction][virtual_channel] 
@@ -81,7 +82,8 @@ SC_MODULE(Router)
     void perCycleUpdate();
     void configure(const int _id, const double _warm_up_time,
 		   const unsigned int _max_buffer_size,
-		   GlobalRoutingTable & grt);
+		   GlobalRoutingTable & grt,
+		   const int _chip_id = 0);
 
     unsigned long getRoutedFlits();	// Returns the number of routed flits 
 
@@ -95,6 +97,8 @@ SC_MODULE(Router)
         SC_METHOD(perCycleUpdate);
         sensitive << reset;
         sensitive << clock.pos();
+
+        local_chip_id = 0;
 
         routingAlgorithm = RoutingAlgorithms::get(GlobalParams::routing_algorithm);
 

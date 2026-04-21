@@ -1,0 +1,1 @@
+% empty traffic table for strict fair multi-process benchmark

@@ -101,11 +101,12 @@ void ChipIO::crossTrafficThread()
         int inject_port = nearestBoundaryPort(e.dst_pe);
 
         // Inject directly into dst_chip boundary (ChipIO acts as direct bridge)
-        cout << "[ChipIO] injecting cross-chip: chip " << e.src_chip
-             << " -> chip " << e.dst_chip
-             << "  src_pe=" << e.src_pe << " dst_pe=" << e.dst_pe
-             << "  port=" << inject_port
-             << "  @" << sc_time_stamp() << endl;
+        if (GlobalParams::verbose_mode != VERBOSE_OFF && GlobalParams::verbose_mode != VERBOSE_LOW)
+            cout << "[ChipIO] injecting cross-chip: chip " << e.src_chip
+                 << " -> chip " << e.dst_chip
+                 << "  src_pe=" << e.src_pe << " dst_pe=" << e.dst_pe
+                 << "  port=" << inject_port
+                 << "  @" << sc_time_stamp() << endl;
         manualInject(e.dst_chip, inject_port, head);
         manualInject(e.dst_chip, inject_port, tail);
 
@@ -189,12 +190,13 @@ void ChipIO::dispatchCrossChip()
         if (f.timestamp > 0 && now_cycle >= f.timestamp)
             stats_cross_latency.push_back(now_cycle - f.timestamp);
         int inject_port = nearestBoundaryPort(f.dst_id);
-        cout << "[ChipIO] cross-chip flit: chip " << from_c
-             << " -> chip " << dst_chip
-             << "  src_pe=" << f.src_id << " dst_pe=" << f.dst_id
-             << "  port=" << inject_port
-             << "  type=" << f.flit_type
-             << "  @" << sc_time_stamp() << endl;
+        if (GlobalParams::verbose_mode != VERBOSE_OFF && GlobalParams::verbose_mode != VERBOSE_LOW)
+            cout << "[ChipIO] cross-chip flit: chip " << from_c
+                 << " -> chip " << dst_chip
+                 << "  src_pe=" << f.src_id << " dst_pe=" << f.dst_id
+                 << "  port=" << inject_port
+                 << "  type=" << f.flit_type
+                 << "  @" << sc_time_stamp() << endl;
         inQueue[dst_chip][inject_port].push(f);
     }
 }

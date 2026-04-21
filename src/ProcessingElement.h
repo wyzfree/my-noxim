@@ -42,6 +42,7 @@ SC_MODULE(ProcessingElement)
 
     // Registers
     int local_id;		// Unique identification number
+    int chip_id;         // Owning chip index in multi-chip mode
     bool current_level_rx;	// Current level for Alternating Bit Protocol (ABP)
     bool current_level_tx;	// Current level for Alternating Bit Protocol (ABP)
     queue < Packet > packet_queue;	// Local queue of packets
@@ -65,8 +66,22 @@ SC_MODULE(ProcessingElement)
     size_t traffic_cycle = 0;
     GlobalTrafficTable *traffic_table;	// Reference to the Global traffic Table
     GlobalTrafficHardcoding *traffic_hardcoded;	// Reference to the Global traffic Hardcoding
-    bool never_transmit;	// true if the PE does not transmit any packet 
+    bool never_transmit;	// true if the PE does not transmit any packet
     //  (valid only for the table based traffic)
+
+    // ---- SNN (LIF) state ------------------------------------------------
+    // Only active when GlobalParams::snn_mode == true.
+    // All fields are zero/false by default; original code paths are never
+    // reached when snn_mode is true, so existing behaviour is preserved.
+    float        snn_v_          = 0.0f; // membrane potential
+    float        snn_input_acc_  = 0.0f; // spike inputs accumulated this timestep
+    int          snn_last_ts_    = -1;   // last SNN timestep processed
+    bool         snn_initialized_= false;
+    vector<int>  snn_targets_;           // post-synaptic PE IDs (intra-chip)
+
+    void snnInit();              // lazy init: assign random targets
+    void snnTick(double now);    // called once per SNN timestep boundary
+    // ---------------------------------------------------------------------
 
     void fixRanges(const Coord, Coord &);	// Fix the ranges of the destination
     int randInt(int min, int max);	// Extracts a random integer number between min and max
@@ -88,6 +103,8 @@ SC_MODULE(ProcessingElement)
 	SC_METHOD(txProcess);
 	sensitive << reset;
 	sensitive << clock.pos();
+
+        chip_id = 0;
     }
 
 };

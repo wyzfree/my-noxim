@@ -27,7 +27,9 @@ int Selection_NOP::apply(Router * router, const vector < int >&directions, const
 	tmp_route_data.current_id = candidate_id;
 	tmp_route_data.src_id = route_data.src_id;
 	tmp_route_data.dst_id = route_data.dst_id;
+	tmp_route_data.dst_chip_id = route_data.dst_chip_id;
 	tmp_route_data.dir_in = router->reflexDirection(directions[i]);
+	tmp_route_data.vc_id = route_data.vc_id;
 
 
 	vector < int >next_candidate_channels =

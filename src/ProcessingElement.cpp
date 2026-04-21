@@ -25,6 +25,11 @@ void ProcessingElement::rxProcess()
 	if (req_rx.read() == 1 - current_level_rx) {
 	    Flit flit_tmp = flit_rx.read();
 	    current_level_rx = 1 - current_level_rx;	// Negate the old value for Alternating Bit Protocol (ABP)
+
+	    // SNN mode: HEAD flit = one spike arriving → accumulate input current.
+	    // BODY/TAIL flits carry no additional information in the spike model.
+	    if (GlobalParams::snn_mode && flit_tmp.flit_type == FLIT_TYPE_HEAD)
+		snn_input_acc_ += GlobalParams::snn_weight_in;
 	}
 	ack_rx.write(current_level_rx);
     }
@@ -38,7 +43,22 @@ void ProcessingElement::txProcess()
 	transmittedAtPreviousCycle = false;
     } else {
 
-    if(GlobalParams::traffic_distribution != TRAFFIC_HARDCODED) {
+    double now = sc_time_stamp().to_double() / GlobalParams::clock_period_ps;
+
+    if (GlobalParams::snn_mode) {
+	// ---- SNN path: LIF neuron drives packet generation ----
+	// Lazy init on first active cycle (local_id is valid by then).
+	if (!snn_initialized_) snnInit();
+
+	// At each SNN timestep boundary: integrate + check threshold.
+	int current_ts = (int)(now / GlobalParams::snn_timestep_cycles);
+	if (current_ts > snn_last_ts_) {
+	    snn_last_ts_ = current_ts;
+	    snnTick(now);
+	}
+	// Fall through to the shared packet-send block below.
+
+    } else if(GlobalParams::traffic_distribution != TRAFFIC_HARDCODED) {
 		Packet packet;
 		if (canShot(packet)) {
 			packet_queue.push(packet);
@@ -47,8 +67,6 @@ void ProcessingElement::txProcess()
 			transmittedAtPreviousCycle = false;
 		}
     } else if(traffic_cycle < traffic_hardcoded->num_cycles()) {
-		double now = sc_time_stamp().to_double() / GlobalParams::clock_period_ps;
-		
 		bool any = false;
 		for (HardcodedTrafficEntry const& expected_packet
 			   : traffic_hardcoded->traffic_at_cycle(traffic_cycle)) {
@@ -88,8 +106,11 @@ Flit ProcessingElement::nextFlit()
 
     flit.src_id = packet.src_id;
     flit.dst_id = packet.dst_id;
-    flit.chip_id = 0;      // intra-chip flit: source chip always 0 for single-chip PE
-    flit.dst_chip_id = -1; // intra-chip flit: no cross-chip routing
+    flit.chip_id = chip_id;
+    if (GlobalParams::snn_mode && GlobalParams::snn_target_chip >= 0)
+        flit.dst_chip_id = GlobalParams::snn_target_chip;
+    else
+        flit.dst_chip_id = -1; // legacy intra-chip path
     flit.vc_id = packet.vc_id;
     flit.timestamp = packet.timestamp;
     flit.sequence_no = packet.size - packet.flit_left;
@@ -518,3 +539,58 @@ unsigned int ProcessingElement::getQueueSize() const
     return packet_queue.size();
 }
 
+// ============================================================
+// snnInit: lazy initialisation, called on first active txProcess cycle.
+// local_id is guaranteed to be set by then.
+// Randomly picks snn_fanout distinct post-synaptic targets from the
+// local mesh, excluding self.
+// ============================================================
+void ProcessingElement::snnInit()
+{
+    snn_initialized_ = true;
+    snn_v_           = 0.0f;
+    snn_input_acc_   = 0.0f;
+    snn_last_ts_     = -1;
+
+    int max_id = GlobalParams::mesh_dim_x * GlobalParams::mesh_dim_y - 1;
+    int fanout  = min(GlobalParams::snn_fanout, max_id); // can't exceed available PEs
+
+    // Fisher-Yates-style reservoir: collect all valid targets, shuffle, take first fanout
+    vector<int> pool;
+    pool.reserve(max_id);
+    for (int i = 0; i <= max_id; i++)
+        if (i != local_id) pool.push_back(i);
+
+    for (int i = 0; i < fanout; i++) {
+        int j = i + randInt(0, (int)pool.size() - 1 - i);
+        swap(pool[i], pool[j]);
+    }
+    snn_targets_.assign(pool.begin(), pool.begin() + fanout);
+}
+
+// ============================================================
+// snnTick: called once per SNN timestep boundary.
+// Performs LIF integration, checks threshold, and enqueues
+// spike packets to all post-synaptic targets on fire.
+// ============================================================
+void ProcessingElement::snnTick(double now)
+{
+    // Leaky integration: decay existing potential, add bias + synaptic input
+    snn_v_ = snn_v_ * GlobalParams::snn_leak
+             + GlobalParams::snn_bias
+             + snn_input_acc_;
+    snn_input_acc_ = 0.0f; // reset accumulator for next timestep
+
+    if (snn_v_ >= GlobalParams::snn_threshold) {
+        snn_v_ = 0.0f; // hard reset after firing
+
+        // Enqueue one 1-flit spike packet per post-synaptic target
+        // Use 2 flits (HEAD+TAIL): current NoC/FileIO flow assumes packets
+        // have an explicit tail for reservation release and compatibility.
+        for (int dst : snn_targets_) {
+            Packet p;
+            p.make(local_id, dst, /*vc=*/0, now, /*size=*/2);
+            packet_queue.push(p);
+        }
+    }
+}
