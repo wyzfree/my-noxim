@@ -134,11 +134,12 @@ for img_idx in range(num_images):
 
         for nid in firing_neurons:
             src_pe = neuron_to_pe(nid, npe_input)        # map neuron → PE (0-15)
-            # Positive-weight targets in hidden layer
-            targets = np.where(W1[nid] > 0)[0]
-            if len(targets) == 0:
+            # Weight-proportional target selection: sample dst proportional to W1[nid,:]
+            pos_w = np.maximum(0.0, W1[nid])
+            total = pos_w.sum()
+            if total == 0:
                 continue
-            dst_nid = int(rng.choice(targets))
+            dst_nid = int(rng.choice(n_hidden, p=pos_w / total))
             dst_pe  = neuron_to_pe(dst_nid, npe_hidden)  # map hidden neuron → PE
             entries.append((0, 1, src_pe, dst_pe, inject_cycle))
 
@@ -148,14 +149,15 @@ for img_idx in range(num_images):
 
         for nid in firing_hidden:
             src_pe  = neuron_to_pe(nid, npe_hidden)       # map hidden neuron → PE
-            targets = np.where(W2[nid] > 0)[0]
-            if len(targets) == 0:
+            # Weight-proportional target selection: sample dst proportional to W2[nid,:]
+            pos_w = np.maximum(0.0, W2[nid])
+            total = pos_w.sum()
+            if total == 0:
                 continue
-            dst_nid = int(rng.choice(targets))
-            dst_pe  = dst_nid                             # output: 1 neuron/PE (0-9)
-            if dst_pe >= num_pe:
+            dst_nid = int(rng.choice(n_output, p=pos_w / total))
+            if dst_nid >= num_pe:
                 continue                                  # safety: ignore if out of range
-            entries.append((1, 2, src_pe, dst_pe, inject_cycle))
+            entries.append((1, 2, src_pe, dst_nid, inject_cycle))
 
 # ---------- write traffic table ----------
 # Sort by inject_cycle for Noxim

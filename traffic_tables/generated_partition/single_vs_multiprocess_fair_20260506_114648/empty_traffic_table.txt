@@ -1,0 +1,1 @@
+% empty traffic table for fair single-vs-multiprocess benchmark

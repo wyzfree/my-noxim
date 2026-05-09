@@ -1,0 +1,4 @@
+chips,single_avg_wall_sec,multi_avg_wall_sec,single_over_multi_speedup
+1,56.4989,61.0633,0.9253
+4,55.6444,9.7767,5.6916
+16,58.1256,7.0778,8.2124

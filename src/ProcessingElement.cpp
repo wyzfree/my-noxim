@@ -553,9 +553,8 @@ void ProcessingElement::snnInit()
     snn_last_ts_     = -1;
 
     int max_id = GlobalParams::mesh_dim_x * GlobalParams::mesh_dim_y - 1;
-    int fanout  = min(GlobalParams::snn_fanout, max_id); // can't exceed available PEs
+    int fanout  = min(GlobalParams::snn_fanout, max_id);
 
-    // Fisher-Yates-style reservoir: collect all valid targets, shuffle, take first fanout
     vector<int> pool;
     pool.reserve(max_id);
     for (int i = 0; i <= max_id; i++)
@@ -566,6 +565,17 @@ void ProcessingElement::snnInit()
         swap(pool[i], pool[j]);
     }
     snn_targets_.assign(pool.begin(), pool.begin() + fanout);
+
+    // Cross-chip targets: random PEs on random other chips
+    int cross_fanout = GlobalParams::snn_cross_chip_fanout;
+    int num_chips    = GlobalParams::num_chips;
+    int pe_per_chip  = GlobalParams::mesh_dim_x * GlobalParams::mesh_dim_y;
+    for (int i = 0; i < cross_fanout && num_chips > 1; i++) {
+        int dst_chip = randInt(0, num_chips - 2);
+        if (dst_chip >= chip_id) dst_chip++;   // skip self
+        int dst_pe = randInt(0, pe_per_chip - 1);
+        snn_cross_targets_.push_back({dst_chip, dst_pe});
+    }
 }
 
 // ============================================================
@@ -576,21 +586,35 @@ void ProcessingElement::snnInit()
 void ProcessingElement::snnTick(double now)
 {
     // Leaky integration: decay existing potential, add bias + synaptic input
+    float bias = (!GlobalParams::snn_bias_per_chip.empty() &&
+                  chip_id < (int)GlobalParams::snn_bias_per_chip.size())
+                 ? GlobalParams::snn_bias_per_chip[chip_id]
+                 : GlobalParams::snn_bias;
     snn_v_ = snn_v_ * GlobalParams::snn_leak
-             + GlobalParams::snn_bias
+             + bias
              + snn_input_acc_;
     snn_input_acc_ = 0.0f; // reset accumulator for next timestep
 
     if (snn_v_ >= GlobalParams::snn_threshold) {
-        snn_v_ = 0.0f; // hard reset after firing
+        snn_v_ = 0.0f;
 
-        // Enqueue one 1-flit spike packet per post-synaptic target
-        // Use 2 flits (HEAD+TAIL): current NoC/FileIO flow assumes packets
-        // have an explicit tail for reservation release and compatibility.
+        // Intra-chip spikes: go through NoC as normal packets
         for (int dst : snn_targets_) {
             Packet p;
             p.make(local_id, dst, /*vc=*/0, now, /*size=*/2);
             packet_queue.push(p);
         }
+
+        // Cross-chip spikes: accumulate in batch for this timestep
+        for (auto& [dst_chip, dst_pe] : snn_cross_targets_)
+            cross_spike_batch_.push_back({dst_chip, dst_pe});
+    }
+
+    // Flush cross-chip batch at every timestep boundary (fire or not)
+    if (cross_chip_fn_ && !cross_spike_batch_.empty()) {
+        int inject_cycle = (int)now;
+        for (auto& [dst_chip, dst_pe] : cross_spike_batch_)
+            cross_chip_fn_(dst_chip, local_id, dst_pe, inject_cycle);
+        cross_spike_batch_.clear();
     }
 }

@@ -82,6 +82,19 @@ int sc_main(int arg_num, char *arg_vet[])
         file_io->clock(clock);
         file_io->reset(reset);
 
+        // Wire cross-chip spike callback into every PE (for SNN online mode)
+        if (GlobalParams::snn_mode && GlobalParams::snn_cross_chip_fanout > 0) {
+            int dimx = GlobalParams::mesh_dim_x;
+            int dimy = GlobalParams::mesh_dim_y;
+            for (int x = 0; x < dimx; x++)
+                for (int y = 0; y < dimy; y++)
+                    chips[0]->t[x][y]->pe->cross_chip_fn_ =
+                        [file_io](int dst_chip, int src_pe, int dst_pe, int inject_cycle) {
+                            file_io->writeRecord(GlobalParams::chip_id, dst_chip,
+                                                 src_pe, dst_pe, inject_cycle, 2);
+                        };
+        }
+
         reset.write(1);
         cout << "Reset for " << (int)(GlobalParams::reset_time) << " cycles... ";
         srand(GlobalParams::rnd_generator_seed);

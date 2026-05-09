@@ -44,6 +44,7 @@ TRAFFIC_BASE="$ROOT_DIR/traffic_tables/generated_partition"
 FILE_TOPOLOGY="inbox"  # fixed for fair multi-process conflict path
 
 QUICK_MODE=0
+SKIP_MULTI_WHEN_1CHIP=0
 
 usage() {
   cat <<'USAGE'
@@ -66,6 +67,7 @@ Options:
   --conda-env NAME           Conda env name (default: paper)
   --conda-prefix PATH        Conda prefix hint for LD_LIBRARY_PATH
   --no-conda                 Run binary directly (without conda run)
+  --skip-multi-when-1chip    Skip multiprocess(FileIO) run when chips=1
   --quick                    Local smoke preset
   -h, --help                 Show this help
 USAGE
@@ -89,6 +91,7 @@ while [[ $# -gt 0 ]]; do
     --conda-env) CONDA_ENV="$2"; shift 2 ;;
     --conda-prefix) CONDA_PREFIX_HINT="$2"; shift 2 ;;
     --no-conda) USE_CONDA=0; shift ;;
+    --skip-multi-when-1chip) SKIP_MULTI_WHEN_1CHIP=1; shift ;;
     --quick) QUICK_MODE=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown option: $1"; usage; exit 1 ;;
@@ -251,6 +254,7 @@ log "OUTDIR=$OUTDIR"
 log "Params: sim=$SIM repeats=$REPEATS timesteps=$TIMESTEPS interval=$INTERVAL"
 log "Params: configs=$CHIP_CONFIGS sparsities=$SPARSITIES seed_base=$SEED_BASE"
 log "Params: file_topology=$FILE_TOPOLOGY (fixed)"
+log "Params: skip_multi_when_1chip=$SKIP_MULTI_WHEN_1CHIP"
 log "Params: config=$CONFIG power_config=$POWER_CONFIG"
 
 for cfg in "${CFG_ARR[@]}"; do
@@ -283,17 +287,21 @@ for cfg in "${CFG_ARR[@]}"; do
         "singleprocess_chipio" "$traffic_file" "$run_dir_sp" "$wall_sp" "$exit_sp" "$valid_sp" >> "$CSV"
 
       # 2) multi-process
-      run_dir_mp="$OUTDIR/run_${run_id}_multi_c${chips}_s${sparsity}_r${rep}"
-      mkdir -p "$run_dir_mp"
-      log "Run #$run_id MULTI : chips=$chips dim=${dimx}x${dimy} sparsity=$sparsity target_entries=$target_entries rep=$rep"
-      IFS='|' read -r wall_mp exit_mp valid_mp < <(run_multi_process "$chips" "$dimx" "$dimy" "$SIM" "$seed" "$traffic_file" "$run_dir_mp")
-      for ((i=0; i<chips; i++)); do
-        cat "$run_dir_mp/chip${i}.log" >> "$LOG"
-      done
-      printf "%s,%d,%d,%d,%d,%d,%d,%s,%d,%d,%d,%d,%d,%s,%s,%s,%s,%s,%s\n" \
-        "$(date +'%F %T')" "$run_id" "$rep" "$chips" "$dimx" "$dimy" "$total_pe" \
-        "$sparsity" "$target_entries" "$TIMESTEPS" "$INTERVAL" "$seed" "$SIM" \
-        "multiprocess_random_inbox_fileio" "$traffic_file" "$run_dir_mp" "$wall_mp" "$exit_mp" "$valid_mp" >> "$CSV"
+      if [[ "$SKIP_MULTI_WHEN_1CHIP" -eq 1 && "$chips" -eq 1 ]]; then
+        log "Run #$run_id MULTI : skipped (chips=1 and --skip-multi-when-1chip enabled)"
+      else
+        run_dir_mp="$OUTDIR/run_${run_id}_multi_c${chips}_s${sparsity}_r${rep}"
+        mkdir -p "$run_dir_mp"
+        log "Run #$run_id MULTI : chips=$chips dim=${dimx}x${dimy} sparsity=$sparsity target_entries=$target_entries rep=$rep"
+        IFS='|' read -r wall_mp exit_mp valid_mp < <(run_multi_process "$chips" "$dimx" "$dimy" "$SIM" "$seed" "$traffic_file" "$run_dir_mp")
+        for ((i=0; i<chips; i++)); do
+          cat "$run_dir_mp/chip${i}.log" >> "$LOG"
+        done
+        printf "%s,%d,%d,%d,%d,%d,%d,%s,%d,%d,%d,%d,%d,%s,%s,%s,%s,%s,%s\n" \
+          "$(date +'%F %T')" "$run_id" "$rep" "$chips" "$dimx" "$dimy" "$total_pe" \
+          "$sparsity" "$target_entries" "$TIMESTEPS" "$INTERVAL" "$seed" "$SIM" \
+          "multiprocess_random_inbox_fileio" "$traffic_file" "$run_dir_mp" "$wall_mp" "$exit_mp" "$valid_mp" >> "$CSV"
+      fi
     done
   done
 done

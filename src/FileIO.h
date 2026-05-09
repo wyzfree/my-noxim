@@ -48,6 +48,11 @@ SC_MODULE(FileIO)
 
     void printStats() const;
 
+    // Public write interface for PE cross-chip spike injection.
+    // Thread-safe and cross-process-safe (mutex + flock).
+    void writeRecord(int src_chip, int dst_chip, int src_pe, int dst_pe,
+                     int inject_cycle, int seq_len);
+
 private:
     int    chip_id;
     int    total_ports;
@@ -114,13 +119,6 @@ private:
     static void port2Coord(int p, int& x, int& y, int& dir);
     static int  nearestBoundaryPort(int dst_pe);
     void manualInject(int port, Flit flit);
-
-    // Thread-safe, cross-process-safe record writer.
-    // Acquires out_mutex_ (for future PE threads) and flock LOCK_EX (for
-    // concurrent processes sharing the same out_fifo path), then writes one
-    // formatted record and flushes.  Safe to call from any context.
-    void writeRecord(int src_chip, int dst_chip, int src_pe, int dst_pe,
-                     int inject_cycle, int seq_len);
 };
 
 #endif

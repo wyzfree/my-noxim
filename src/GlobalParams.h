@@ -206,7 +206,9 @@ struct GlobalParams {
     static float  snn_leak;            // leak factor per timestep  (0 < leak < 1)
     static float  snn_weight_in;       // membrane contribution per incoming spike
     static float  snn_bias;            // constant input current per timestep (drives spontaneous activity)
-    static int    snn_fanout;          // number of post-synaptic targets per neuron
+    static vector<float> snn_bias_per_chip; // per-chip override: snn_bias_per_chip[chip_id] if non-empty
+    static int    snn_fanout;               // intra-chip post-synaptic targets per neuron
+    static int    snn_cross_chip_fanout;    // cross-chip post-synaptic targets per neuron
     // Optional cross-chip forwarding target for SNN-generated packets.
     // -1 keeps legacy intra-chip behaviour.
     static int    snn_target_chip;

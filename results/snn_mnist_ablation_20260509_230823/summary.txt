@@ -1,0 +1,6 @@
+SNN MNIST Ablation: num_images=100 start_idx=0
+Date: Sat May  9 23:08:23 CST 2026
+
+T            ANN_accuracy       SNN_accuracy       wall_s    
+------------------------------------------------------------
+8            99/100             55/100             1319s     

@@ -1,0 +1,24 @@
+SNN Live Conflict Validation
+Date: 2026-04-17 13:04:25
+Outdir: /home/st1101/wyz/noxim/results/snn_live_conflict_20260417_130422
+
+Expected conflict graph: 0->2, 1->2, 2->0, 3->0
+
+Observed counters:
+  chip0 tx_records       = 181
+  chip1 tx_records       = 177
+  chip2 tx_records       = 58
+  chip3 tx_records       = 137
+  chip0 parsed_in_records= 195
+  chip2 parsed_in_records= 323
+
+chip0_in source distribution (expect src 2 and 3):
+2 58
+3 137
+
+chip2_in source distribution (expect src 0 and 1):
+0 181
+1 177
+
+RESULT: PASS
+Meaning: both chip0_in and chip2_in are true multi-writer inbox files under live runtime generation.

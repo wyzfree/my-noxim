@@ -1,0 +1,2 @@
+timestamp,run_id,repetition,chips,dimx,dimy,total_pe,sparsity,target_entries,timesteps,interval,seed,sim,mode,traffic_file,run_dir,wall_time_sec,exit_code,valid_chip_logs
+2026-04-17 11:41:28,1,1,4,16,16,1024,0.15,768,5,2000,43,12000,multiprocess_random_inbox_fileio,/home/st1101/wyz/noxim/traffic_tables/generated_partition/chip_partition_multiprocess_benchmark_20260417_114117/random_4c_256pe_s0.15_r1.txt,/home/st1101/wyz/noxim/results/chip_partition_multiprocess_benchmark_20260417_114117/run_1_c4_s0.15_r1,9.67,0,4

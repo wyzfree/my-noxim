@@ -1,0 +1,3 @@
+chips,sparsity,n_single,avg_single_sec,std_single_sec,n_multi,avg_multi_sec,std_multi_sec,speedup_single_over_multi
+4,0.05,1,57.3500,0.0000,1,9.2600,0.0000,6.1933
+16,0.05,1,60.4200,0.0000,1,7.6300,0.0000,7.9187

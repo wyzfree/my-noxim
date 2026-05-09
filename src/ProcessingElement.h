@@ -12,6 +12,7 @@
 #define __NOXIMPROCESSINGELEMENT_H__
 
 #include <queue>
+#include <functional>
 #include <systemc.h>
 
 #include "DataStructs.h"
@@ -73,14 +74,19 @@ SC_MODULE(ProcessingElement)
     // Only active when GlobalParams::snn_mode == true.
     // All fields are zero/false by default; original code paths are never
     // reached when snn_mode is true, so existing behaviour is preserved.
-    float        snn_v_          = 0.0f; // membrane potential
-    float        snn_input_acc_  = 0.0f; // spike inputs accumulated this timestep
-    int          snn_last_ts_    = -1;   // last SNN timestep processed
+    float        snn_v_          = 0.0f;
+    float        snn_input_acc_  = 0.0f;
+    int          snn_last_ts_    = -1;
     bool         snn_initialized_= false;
-    vector<int>  snn_targets_;           // post-synaptic PE IDs (intra-chip)
+    vector<int>  snn_targets_;                    // intra-chip post-synaptic PE IDs
+    vector<pair<int,int>> snn_cross_targets_;     // cross-chip: (dst_chip, dst_pe)
+    vector<pair<int,int>> cross_spike_batch_;     // accumulated this timestep
 
-    void snnInit();              // lazy init: assign random targets
-    void snnTick(double now);    // called once per SNN timestep boundary
+    // Set by Main.cpp in fileio_mode: (dst_chip, src_pe, dst_pe, inject_cycle)
+    std::function<void(int,int,int,int)> cross_chip_fn_;
+
+    void snnInit();
+    void snnTick(double now);
     // ---------------------------------------------------------------------
 
     void fixRanges(const Coord, Coord &);	// Fix the ranges of the destination

@@ -1,0 +1,4 @@
+chips,n_runs,avg_wall_time_sec,std_wall_time_sec,min_wall_time_sec,max_wall_time_sec
+1,9,61.0633,2.8350,56.8200,65.0600
+4,9,9.7767,0.3621,9.3300,10.3100
+16,9,7.0778,0.2503,6.4700,7.4000

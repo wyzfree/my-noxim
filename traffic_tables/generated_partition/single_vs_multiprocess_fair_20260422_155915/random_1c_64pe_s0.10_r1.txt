@@ -1,0 +1,15 @@
+# src_chip dst_chip src_pe dst_pe inject_cycle
+# entries=13 chips=1 pe_per_chip=64 timesteps=2 interval=200 seed=421
+0 0 31 24 200
+0 0 40 19 200
+0 0 32 27 200
+0 0 1 33 200
+0 0 21 54 200
+0 0 63 42 400
+0 0 41 33 400
+0 0 3 21 400
+0 0 63 33 400
+0 0 22 58 400
+0 0 52 8 400
+0 0 25 30 400
+0 0 8 22 400

@@ -1,0 +1,16 @@
+SNN Live Strong Interaction Validation
+Date: 2026-04-17 12:46:54
+Outdir: /home/st1101/wyz/noxim/results/snn_live_strong_20260417_124651
+
+Expected interaction chain:
+  chip0/chip1 (bias>0) -> chip2 (bias=0 relay) -> chip3 (sink)
+
+Observed counters:
+  chip0 tx_records       = 211
+  chip1 tx_records       = 154
+  chip2 parsed_in_records= 340
+  chip2 tx_records       = 59
+  chip3 parsed_in_records= 55
+
+RESULT: PASS
+Meaning: runtime spikes from chip0/1 reached chip2 and triggered further forwarding to chip3.

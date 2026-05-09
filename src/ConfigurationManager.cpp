@@ -9,7 +9,8 @@
  */
 
 #include "ConfigurationManager.h"
-#include <systemc.h> //Included for the function time() 
+#include <systemc.h> //Included for the function time()
+#include <sstream>
 
 YAML::Node config;
 YAML::Node power_config;
@@ -628,10 +629,22 @@ void parseCmdLine(int arg_num, char *arg_vet[])
 		GlobalParams::snn_leak = atof(arg_vet[++i]);
 	    else if (!strcmp(arg_vet[i], "-snn_weight"))
 		GlobalParams::snn_weight_in = atof(arg_vet[++i]);
-	    else if (!strcmp(arg_vet[i], "-snn_bias"))
-		GlobalParams::snn_bias = atof(arg_vet[++i]);
+	    else if (!strcmp(arg_vet[i], "-snn_bias")) {
+		string bias_str = arg_vet[++i];
+		if (bias_str.find(',') != string::npos) {
+		    GlobalParams::snn_bias_per_chip.clear();
+		    istringstream ss(bias_str);
+		    string tok;
+		    while (getline(ss, tok, ','))
+			GlobalParams::snn_bias_per_chip.push_back(stof(tok));
+		} else {
+		    GlobalParams::snn_bias = atof(bias_str.c_str());
+		}
+	    }
 	    else if (!strcmp(arg_vet[i], "-snn_fanout"))
 		GlobalParams::snn_fanout = atoi(arg_vet[++i]);
+	    else if (!strcmp(arg_vet[i], "-snn_cross_chip_fanout"))
+		GlobalParams::snn_cross_chip_fanout = atoi(arg_vet[++i]);
 	    else if (!strcmp(arg_vet[i], "-snn_target_chip"))
 		GlobalParams::snn_target_chip = atoi(arg_vet[++i]);
 	    else if (!strcmp(arg_vet[i], "-config") || !strcmp(arg_vet[i], "-power"))

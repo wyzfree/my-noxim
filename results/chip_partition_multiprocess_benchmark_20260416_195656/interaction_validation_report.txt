@@ -1,0 +1,10 @@
+Multiprocess FileIO interaction validation
+outdir: /home/st1101/wyz/noxim/results/chip_partition_multiprocess_benchmark_20260416_195656
+total_runs: 27
+nonzero_exit_runs: 0
+invalid_valid_chip_logs_rows: 0
+stats_mismatches: 0
+
+All checks passed: for every run/chip,
+- Packets written to out_fifo == source-chip entry count in traffic file
+- Packet records parsed from in_fifo == destination-chip entry count in traffic file

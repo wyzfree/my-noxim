@@ -1,0 +1,2 @@
+chips,n_single,avg_single_sec,n_multi,avg_multi_sec,speedup_single_over_multi
+4,1,1.8400,1,0.2900,6.3448

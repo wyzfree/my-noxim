@@ -1,0 +1,13 @@
+Benchmark interaction validation
+outdir: /home/st1101/wyz/noxim/results/chip_partition_benchmark_20260416_185908
+total_runs: 27
+parsed_runs: 27
+mismatches: 0
+
+All runs matched: per-chip received packets == dst_chip counts in traffic files.
+
+sample runs:
+run#1 chips=1 rec={0: 256}
+run#10 chips=4 rec={0: 80, 1: 65, 2: 62, 3: 49}
+run#19 chips=16 rec={0: 19, 1: 21, 2: 12, 3: 16, 4: 15, 5: 13, 6: 20, 7: 14, 8: 15, 9: 13, 10: 18, 11: 15, 12: 19, 13: 14, 14: 17, 15: 15}
+run#27 chips=16 rec={0: 95, 1: 102, 2: 102, 3: 97, 4: 101, 5: 102, 6: 92, 7: 108, 8: 99, 9: 97, 10: 102, 11: 95, 12: 96, 13: 83, 14: 75, 15: 90}

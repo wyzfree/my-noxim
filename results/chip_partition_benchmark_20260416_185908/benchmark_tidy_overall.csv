@@ -1,0 +1,4 @@
+chips,n_runs,avg_wall_time_sec,std_wall_time_sec,min_wall_time_sec,max_wall_time_sec,speedup_vs_1chip_overall
+1,9,56.4989,0.7601,55.4900,57.5600,1.0000
+4,9,55.6444,1.0135,54.4600,57.0100,1.0154
+16,9,58.1256,1.0986,56.1900,59.7000,0.9720

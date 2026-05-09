@@ -1,0 +1,31 @@
+{
+  "latex-workshop.view.pdf.viewer": "tab",
+  "latex-workshop.synctex.afterBuild.enabled": true,
+  "latex-workshop.latex.autoBuild.run": "onFileChange",
+  "latex-workshop.latex.watch.usePolling": true,
+  "latex-workshop.latex.outDir": "%DIR%/out",
+  "latex-workshop.latex.tools": [
+    {
+      "name": "latexmk_xelatex",
+      "command": "latexmk",
+      "args": [
+        "-cd",
+        "-synctex=1",
+        "-interaction=nonstopmode",
+        "-file-line-error",
+        "-xelatex",
+        "-outdir=out",
+        "%DOCFILE%"
+      ]
+    }
+  ],
+  "latex-workshop.latex.recipes": [
+    {
+      "name": "latexmk (xelatex)",
+      "tools": [
+        "latexmk_xelatex"
+      ]
+    }
+  ],
+  "latex-workshop.latex.recipe.default": "lastUsed"
+}
