@@ -4,3 +4,6 @@ Date: Sat May  9 23:08:23 CST 2026
 T            ANN_accuracy       SNN_accuracy       wall_s    
 ------------------------------------------------------------
 8            99/100             55/100             1319s     
+16           99/100             66/100             8141s     
+
+Full logs: /home/st1101/wyz/noxim/scripts/../results/snn_mnist_ablation_20260509_230823/
